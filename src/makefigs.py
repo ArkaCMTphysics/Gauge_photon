@@ -66,9 +66,9 @@ def fig_spectrum():
         ax.plot(gs,JC[:,k],color=CB["red"],lw=1.0,ls=(0,(4,2)),zorder=2)
     ax.plot([],[],color=CB["blue"],lw=1.3,label="quantum Rabi")
     ax.plot([],[],color=CB["red"],lw=1.0,ls=(0,(4,2)),label="Jaynes--Cummings")
-    ax.set_xlabel(r"coupling $g/\omega$"); ax.set_ylabel(r"$E_k/\omega$")
+    ax.set_xlabel(r"coupling $g/\omega_c$"); ax.set_ylabel(r"$E_k/\omega_c$")
     ax.set_xlim(0,1.0); ax.set_ylim(-1.6,6.0); ax.legend(loc="upper left")
-    ax.set_title(r"Low-lying spectrum, $\Delta=0.7\,\omega$")
+    ax.set_title(r"Low-lying spectrum, $\Delta=0.7\,\omega_c$")
     save(fig,"01_spectrum_rabi_jc")
 
 # ================= FIG: GS photon number Rabi vs JC =================
@@ -82,9 +82,9 @@ def fig_gs_photon():
     fig,ax=plt.subplots(figsize=(5.2,3.8))
     ax.plot(gs,nR,color=CB["blue"],label="quantum Rabi")
     ax.plot(gs,nJ,color=CB["red"],ls=(0,(4,2)),label="Jaynes--Cummings")
-    ax.set_xlabel(r"coupling $g/\omega$"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_{\rm gs}$")
+    ax.set_xlabel(r"coupling $g/\omega_c$"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_{\rm gs}$")
     ax.set_xlim(0,1.0); ax.set_ylim(bottom=-0.01); ax.legend(loc="upper left")
-    ax.set_title(r"Ground-state photon number, $\Delta=0.7\,\omega$")
+    ax.set_title(r"Ground-state photon number, $\Delta=0.7\,\omega_c$")
     save(fig,"02_gs_photon_rabi_jc")
 
 # ================= FIG: discriminant & min photon vs g =================
@@ -95,14 +95,14 @@ def fig_discriminant_min():
         Dv=[]; Mv=[]
         for g in gs:
             _,n0,C,_=gs_obs(g,D); Dv.append(C**2-4*n0); Mv.append(n0-C**2/4)
-        axD.plot(gs,Dv,color=c,label=fr"$\Delta={D}\,\omega$")
-        axM.plot(gs,Mv,color=c,label=fr"$\Delta={D}\,\omega$")
+        axD.plot(gs,Dv,color=c,label=fr"$\Delta={D}\,\omega_c$")
+        axM.plot(gs,Mv,color=c,label=fr"$\Delta={D}\,\omega_c$")
     axD.axhline(0,color=CB["black"],lw=0.7,ls=":")
-    axD.set_xlabel(r"coupling $g/\omega$"); axD.set_ylabel(r"$\mathcal{D}=C^{2}-4\langle a^{\dagger}a\rangle_{0}$")
+    axD.set_xlabel(r"coupling $g/\omega_c$"); axD.set_ylabel(r"$\mathcal{D}=C^{2}-4\langle a^{\dagger}a\rangle_{0}$")
     axD.set_xlim(0,0.7); axD.legend(loc="lower left")
     axD.set_title(r"Discriminant $\mathcal{D}<0$: no photon-empty gauge")
     save(figD,"03_discriminant_vs_g")
-    axM.set_xlabel(r"coupling $g/\omega$"); axM.set_ylabel(r"$\langle a^{\dagger}a\rangle_{\min}=\langle a^{\dagger}a\rangle_{0}-C^{2}/4$")
+    axM.set_xlabel(r"coupling $g/\omega_c$"); axM.set_ylabel(r"$\langle a^{\dagger}a\rangle_{\min}=\langle a^{\dagger}a\rangle_{0}-C^{2}/4$")
     axM.set_xlim(0,0.7); axM.set_ylim(bottom=0); axM.legend(loc="upper left")
     axM.set_title(r"Invariant minimal photon content")
     save(figM,"04_min_photon_vs_g")
@@ -119,9 +119,9 @@ def fig_gauge_family():
     for k,c in zip(kappas,cols):
         ax.plot(gs,n0s+Cs*k+k**2,color=c,label=fr"$\kappa={k:+.1f}$")
     ax.plot(gs,n0s-Cs**2/4,color=CB["black"],lw=1.4,ls=(0,(1,1)),label=r"minimum (invariant)")
-    ax.set_xlabel(r"coupling $g/\omega$"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_{\kappa}$")
+    ax.set_xlabel(r"coupling $g/\omega_c$"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_{\kappa}$")
     ax.set_xlim(0,0.8); ax.set_ylim(bottom=0); ax.legend(loc="upper left",ncol=2)
-    ax.set_title(r"Photon number across gauges, $\Delta=0.7\,\omega$")
+    ax.set_title(r"Photon number across gauges, $\Delta=0.7\,\omega_c$")
     save(fig,"05_photon_across_gauges")
 
 # ================= FIG: n vs kappa parabolas =================
@@ -131,7 +131,7 @@ def fig_n_vs_kappa():
     fig,ax=plt.subplots(figsize=(5.0,3.7))
     for g,c in zip(ggs,cols):
         _,n0,C,_=gs_obs(g,Delta)
-        ax.plot(ks,n0+C*ks+ks**2,color=c,label=fr"$g={g}\,\omega$")
+        ax.plot(ks,n0+C*ks+ks**2,color=c,label=fr"$g={g}\,\omega_c$")
         kmin=-C/2; ax.scatter([kmin],[n0-C**2/4],color=c,s=22,zorder=5,edgecolor="k",linewidth=0.4)
     ax.set_xlabel(r"gauge parameter $\kappa$"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_{\kappa}$")
     ax.set_xlim(-1.2,1.2); ax.set_ylim(bottom=0); ax.legend(loc="upper center")
@@ -242,9 +242,9 @@ def fig_excited():
         ax.scatter(gs[~ev],nk[~ev],s=7,color=CB["red"])
     ax.scatter([],[],s=12,color=CB["blue"],label="even parity")
     ax.scatter([],[],s=12,color=CB["red"],label="odd parity")
-    ax.set_xlabel(r"coupling $g/\omega$"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_k$")
+    ax.set_xlabel(r"coupling $g/\omega_c$"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_k$")
     ax.set_xlim(0,1.0); ax.set_ylim(bottom=0); ax.legend(loc="upper left")
-    ax.set_title(r"Photon content of the lowest eigenstates, $\Delta=0.7\,\omega$")
+    ax.set_title(r"Photon content of the lowest eigenstates, $\Delta=0.7\,\omega_c$")
     save(fig,"09_excited_photon_spectrum")
 
 # ================= timing (their fit + measured points, restyled) =================
@@ -299,8 +299,8 @@ def fig_alpha_min():
         for g in gs:
             _,n0,C,_=gs_obs(g,D); eta=g                 # eta = g_D/omega_tilde (D=0 => omega_tilde=1)
             am.append(1.0 - C/(2*eta))                   # alpha_min = 1 - C/(2 eta)
-        ax.plot(gs,am,color=c,label=fr"$\Delta={D}\,\omega$")
-    ax.set_xlabel(r"coupling $g/\omega$"); ax.set_ylabel(r"$\bar{\alpha}_{\min}$")
+        ax.plot(gs,am,color=c,label=fr"$\Delta={D}\,\omega_c$")
+    ax.set_xlabel(r"coupling $g/\omega_c$"); ax.set_ylabel(r"$\bar{\alpha}_{\min}$")
     ax.set_xlim(0,0.7); ax.legend(loc="upper left")
     ax.set_title(r"Gauge of minimal photon content $\bar{\alpha}_{\min}=1-C/2\eta$")
     save(fig,"12_alpha_min_vs_g")
@@ -310,8 +310,8 @@ def fig_ed_photon():
     gs=np.linspace(0.0,1.0,140); Deltas=[0.3,0.5,0.7]; cols=[CB["green"],CB["orange"],CB["blue"]]
     fig,ax=plt.subplots(figsize=(5.0,3.7))
     for D,c in zip(Deltas,cols):
-        ax.plot(gs,[gs_obs(g,D)[1] for g in gs],color=c,label=fr"$\Delta={D}\,\omega$")
-    ax.set_xlabel(r"coupling $g/\omega$"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_{0}$")
+        ax.plot(gs,[gs_obs(g,D)[1] for g in gs],color=c,label=fr"$\Delta={D}\,\omega_c$")
+    ax.set_xlabel(r"coupling $g/\omega_c$"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_{0}$")
     ax.set_xlim(0,1.0); ax.set_ylim(bottom=0); ax.legend(loc="upper left")
     ax.set_title(r"Ground-state photon number (exact diagonalisation)")
     save(fig,"13_ed_photon")
@@ -323,9 +323,9 @@ def fig_ed_tunable():
     ax.plot(gline,[gs_obs(g,Delta)[1] for g in gline],color=CB["blue"],lw=1.6,label="exact diagonalisation",zorder=2)
     ax.scatter(gmk,[tunable_photon(g,Delta,1,14) for g in gmk],s=26,facecolor="none",
                edgecolor=CB["red"],linewidth=1.2,label=r"tunable coherent state ($N=14$)",zorder=3)
-    ax.set_xlabel(r"coupling $g/\omega$"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_{0}$")
+    ax.set_xlabel(r"coupling $g/\omega_c$"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_{0}$")
     ax.set_xlim(0,1.0); ax.set_ylim(bottom=0); ax.legend(loc="upper left")
-    ax.set_title(r"Validation: analytic vs. numerical, $\Delta=0.7\,\omega$")
+    ax.set_title(r"Validation: analytic vs. numerical, $\Delta=0.7\,\omega_c$")
     save(fig,"14_ed_vs_tunable")
 
 if __name__=="__main__":

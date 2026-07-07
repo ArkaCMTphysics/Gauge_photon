@@ -17,6 +17,13 @@ def ncut(Ns,g): return int(max(24, 20+34*g))
 
 cols=[CB["blue"],CB["orange"],CB["green"],CB["purple"]]
 
+# Mean-field (thermodynamic-limit) superradiant critical coupling of the standard
+# (uncorrected, D=0) Dicke Hamiltonian, from Holstein-Primakoff linearization +
+# Bogoliubov stability analysis of H = wc a^dag a + wx b^dag b
+#   + i*g*wc/sqrt(Ns) * (a^dag - a) * sqrt(Ns/2)*(b+b^dag);
+# instability threshold at g_c = (1/2) sqrt(wx/wc).
+def gc_meanfield(wc=1.0, wx=1.0): return 0.5*np.sqrt(wx/wc)
+
 # ---- Fig 15: GI parabolas ----
 def fig_parabolas():
     g=0.8; lam=np.linspace(-1.2,1.2,400)
@@ -62,10 +69,50 @@ def fig_discriminant():
     ax.set_title(r"$\mathcal{D}<0$ (gauge-invariant Dicke): minimum stays positive")
     M.save(fig,"17_dicke_discriminant")
 
+# ---- Fig 18: gauge of minimal photon content vs g (GI vs standard) ----
+def fig_alpha_min():
+    gs=np.linspace(0.05,1.0,26); gc=gc_meanfield()
+    fig,ax=plt.subplots(figsize=(5.6,4.1))
+    for Ns,c in zip((1,2,3,4),cols):
+        amG=[]; amS=[]
+        for g in gs:
+            n0,Cl,Q=moments(Ns,g,ncut(Ns,g),selfpol=True);  amG.append(-Cl/(2*Q*g))
+            n0,Cl,Q=moments(Ns,g,ncut(Ns,g),selfpol=False); amS.append(-Cl/(2*Q*g))
+        ax.plot(gs,amG,color=c,lw=1.8,label=fr"$N_s={Ns}$")
+        ax.plot(gs,amS,color=c,lw=1.1,ls=(0,(4,2)),alpha=0.9)
+    ax.axvline(gc,color=CB["black"],lw=0.9,ls=":")
+    ax.text(gc,ax.get_ylim()[1] if ax.get_ylim()[1]>0 else 0,r"$g_c$",ha="center",va="bottom",fontsize=9)
+    ax.plot([],[],color=CB["black"],lw=1.8,label="gauge-invariant (TRK)")
+    ax.plot([],[],color=CB["black"],lw=1.1,ls=(0,(4,2)),label="standard (no diamagn.)")
+    ax.set_xlabel(r"coupling $g$"); ax.set_ylabel(r"gauge of minimal photon content $\alpha_{\min}$")
+    ax.set_xlim(0,1.0); ax.legend(loc="best",ncol=2,fontsize=8.0)
+    ax.set_title(r"Minimal-photon gauge vs coupling")
+    M.save(fig,"18_dicke_alpha_min_vs_g")
+
+# ---- Fig 19: invariant minimal photon number vs g (GI vs standard) ----
+def fig_min_photon():
+    gs=np.linspace(0.05,1.0,26); gc=gc_meanfield()
+    fig,ax=plt.subplots(figsize=(5.6,4.1))
+    for Ns,c in zip((1,2,3,4),cols):
+        nmG=[]; nmS=[]
+        for g in gs:
+            n0,Cl,Q=moments(Ns,g,ncut(Ns,g),selfpol=True);  nmG.append(n0-Cl**2/(4*Q))
+            n0,Cl,Q=moments(Ns,g,ncut(Ns,g),selfpol=False); nmS.append(n0-Cl**2/(4*Q))
+        ax.plot(gs,nmG,color=c,lw=1.8,label=fr"$N_s={Ns}$")
+        ax.plot(gs,nmS,color=c,lw=1.1,ls=(0,(4,2)),alpha=0.9)
+    ax.axvline(gc,color=CB["black"],lw=0.9,ls=":")
+    ax.text(gc,ax.get_ylim()[1],r"$g_c$",ha="center",va="bottom",fontsize=9)
+    ax.plot([],[],color=CB["black"],lw=1.8,label="gauge-invariant (TRK)")
+    ax.plot([],[],color=CB["black"],lw=1.1,ls=(0,(4,2)),label="standard (no diamagn.)")
+    ax.set_xlabel(r"coupling $g$"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_{\min}$")
+    ax.set_xlim(0,1.0); ax.set_ylim(bottom=0); ax.legend(loc="upper left",ncol=2,fontsize=8.0)
+    ax.set_title(r"Invariant minimal photon number vs coupling")
+    M.save(fig,"19_dicke_min_photon_vs_g")
+
 # convergence guard
 print("Ncut convergence (Ns=4, GI):")
 for g in (0.6,1.0):
     for nc in (ncut(4,g), ncut(4,g)+14):
         print(f"  g={g} Nc={nc}:", np.round(moments(4,g,nc,True),5))
-for f in (fig_parabolas,fig_curvature,fig_discriminant): f()
+for f in (fig_parabolas,fig_curvature,fig_discriminant,fig_alpha_min,fig_min_photon): f()
 print("DONE")
