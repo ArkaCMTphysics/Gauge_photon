@@ -41,6 +41,32 @@ def gs_obs(g,Delta,w=1.0,Nf=160):
     H,a,ad,Nf=qrm(g,Delta,w,Nf); E,V=np.linalg.eigh(H); psi=V[:,0]
     num=np.kron(ad@a,np.eye(2)); sx=np.kron(np.eye(Nf),np.array([[0.,1],[1,0]])); x=np.kron(a+ad,np.eye(2))
     return E[0], float(psi@num@psi), float(psi@(sx@x)@psi), E
+
+def HC_corrected(g,Delta,w=1.0,Nf=160):
+    """eq:corrected-Coulomb = H^(alpha=0), the genuine gauge family's Coulomb endpoint
+    (D=0, so wc_tilde=wc and eta=g/wc); NOT the naive/uncorrected H_C used by gs_obs above,
+    which Sec. 3.2 states is not part of the genuine gauge family."""
+    from scipy.linalg import cosm, sinm
+    a,ad=ops(Nf); I2=np.eye(2)
+    sy=np.array([[0.,-1j],[1j,0]]); sz=np.array([[1.,0],[0,-1]],dtype=complex)
+    eta=g/w; x=a+ad
+    H=w*np.kron(ad@a,I2)+Delta*(np.kron(cosm(2*eta*x),sz)+np.kron(sinm(2*eta*x),sy))
+    return H,a,ad,Nf
+
+def gs_obs_genuine(g,Delta,w=1.0,Nf=160):
+    """Ground-state moments (n0,C) of the genuine alpha-gauge family at alpha=0 (Coulomb),
+    using the universal C = i<sigma_x(ad-a)>_0 convention of eq:universal-parabola (Q=1 exactly,
+    since G=sigma_x, G^2=I). Because U_alpha = U_lambda|_{lambda=-alpha*eta} is exactly the
+    universal displacement operator, the parabola n(alpha) = n0 - C*eta*alpha + eta^2*alpha^2
+    follows in closed form from this single diagonalisation -- no further sweep is needed."""
+    H,a,ad,Nf=HC_corrected(g,Delta,w,Nf); E,V=np.linalg.eigh(H); psi=V[:,0]
+    I2=np.eye(2)
+    num=np.kron(ad@a,I2)
+    Gop=np.kron(np.eye(Nf),np.array([[0.,1],[1,0]],dtype=complex))  # sigma_x on matter
+    padag_a=np.kron(ad-a,I2)
+    n0=float(np.real(psi.conj()@num@psi))
+    C=float(np.real(1j*(psi.conj()@(Gop@padag_a)@psi)))
+    return n0,C
 def parity_spectrum(Hfun,g,Delta,nlev,w=1.0,Nf=120):
     # parity P = exp(i pi (a^dag a + (1-sx)/2)) ; build and split
     H,*_=(Hfun(g,Delta,w,Nf) if Hfun is qrm else (jc(g,Delta,w,Nf),))
@@ -87,14 +113,14 @@ def fig_gs_photon():
     ax.set_title(r"Ground-state photon number, $\Delta=0.7\,\omega_c$")
     save(fig,"02_gs_photon_rabi_jc")
 
-# ================= FIG: discriminant & min photon vs g =================
+# ================= FIG: discriminant & min photon vs g (genuine alpha-gauge family) =================
 def fig_discriminant_min():
     gs=np.linspace(0.02,0.7,120); Deltas=[0.3,0.5,0.7]; cols=[CB["green"],CB["orange"],CB["blue"]]
     figD,axD=plt.subplots(figsize=(5.0,3.7)); figM,axM=plt.subplots(figsize=(5.0,3.7))
     for D,c in zip(Deltas,cols):
         Dv=[]; Mv=[]
         for g in gs:
-            _,n0,C,_=gs_obs(g,D); Dv.append(C**2-4*n0); Mv.append(n0-C**2/4)
+            n0,C=gs_obs_genuine(g,D); Dv.append(C**2-4*n0); Mv.append(n0-C**2/4)
         axD.plot(gs,Dv,color=c,label=fr"$\Delta={D}\,\omega_c$")
         axM.plot(gs,Mv,color=c,label=fr"$\Delta={D}\,\omega_c$")
     axD.axhline(0,color=CB["black"],lw=0.7,ls=":")
@@ -107,34 +133,36 @@ def fig_discriminant_min():
     axM.set_title(r"Invariant minimal photon content")
     save(figM,"04_min_photon_vs_g")
 
-# ================= FIG: photon number across gauges (kappa parabola family) =================
+# ================= FIG: photon number across gauges (genuine alpha-gauge family) =================
 def fig_gauge_family():
     gs=np.linspace(0.0,0.8,140); Delta=0.7
-    kappas=[-0.6,-0.3,0.0,0.3,0.6]; cols=plt.cm.viridis(np.linspace(0.1,0.85,len(kappas)))
+    alphas=[0.0,0.25,0.5,0.75,1.0]; cols=plt.cm.viridis(np.linspace(0.1,0.85,len(alphas)))
     n0s=[]; Cs=[]
     for g in gs:
-        _,n0,C,_=gs_obs(g,Delta); n0s.append(n0); Cs.append(C)
-    n0s=np.array(n0s); Cs=np.array(Cs)
+        n0,C=gs_obs_genuine(g,Delta); n0s.append(n0); Cs.append(C)
+    n0s=np.array(n0s); Cs=np.array(Cs); etas=gs
     fig,ax=plt.subplots(figsize=(5.2,3.8))
-    for k,c in zip(kappas,cols):
-        ax.plot(gs,n0s+Cs*k+k**2,color=c,label=fr"$\kappa={k:+.1f}$")
+    for al,c in zip(alphas,cols):
+        n_al=n0s-Cs*etas*al+(etas*al)**2
+        ax.plot(gs,n_al,color=c,label=fr"$\alpha={al:.2f}$")
     ax.plot(gs,n0s-Cs**2/4,color=CB["black"],lw=1.4,ls=(0,(1,1)),label=r"minimum (invariant)")
-    ax.set_xlabel(r"coupling $g/\omega_c$"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_{\kappa}$")
+    ax.set_xlabel(r"coupling $g/\omega_c$"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_{\alpha}$")
     ax.set_xlim(0,0.8); ax.set_ylim(bottom=0); ax.legend(loc="upper left",ncol=2)
     ax.set_title(r"Photon number across gauges, $\Delta=0.7\,\omega_c$")
     save(fig,"05_photon_across_gauges")
 
-# ================= FIG: n vs kappa parabolas =================
+# ================= FIG: n vs alpha parabolas (genuine alpha-gauge family) =================
 def fig_n_vs_kappa():
     Delta=0.7; ggs=[0.2,0.4,0.6]; cols=[CB["green"],CB["orange"],CB["blue"]]
-    ks=np.linspace(-1.2,1.2,400)
+    als=np.linspace(-0.3,1.5,400)
     fig,ax=plt.subplots(figsize=(5.0,3.7))
     for g,c in zip(ggs,cols):
-        _,n0,C,_=gs_obs(g,Delta)
-        ax.plot(ks,n0+C*ks+ks**2,color=c,label=fr"$g={g}\,\omega_c$")
-        kmin=-C/2; ax.scatter([kmin],[n0-C**2/4],color=c,s=22,zorder=5,edgecolor="k",linewidth=0.4)
-    ax.set_xlabel(r"gauge parameter $\kappa$"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_{\kappa}$")
-    ax.set_xlim(-1.2,1.2); ax.set_ylim(bottom=0); ax.legend(loc="upper center")
+        n0,C=gs_obs_genuine(g,Delta); eta=g
+        ax.plot(als,n0-C*eta*als+(eta*als)**2,color=c,label=fr"$g={g}\,\omega_c$")
+        amin=C/(2*eta); ax.scatter([amin],[n0-C**2/4],color=c,s=22,zorder=5,edgecolor="k",linewidth=0.4)
+    ax.axvline(0,color=CB["black"],lw=0.7,ls=":"); ax.axvline(1,color=CB["black"],lw=0.7,ls=":")
+    ax.set_xlabel(r"gauge parameter $\alpha$ (Coulomb$=0$, dipole$=1$)"); ax.set_ylabel(r"$\langle a^{\dagger}a\rangle_{\alpha}$")
+    ax.set_xlim(-0.3,1.5); ax.set_ylim(bottom=0); ax.legend(loc="upper center")
     ax.set_title(r"Unit-curvature gauge orbit (dots: invariant minima)")
     save(fig,"06_photon_vs_kappa")
 
@@ -297,12 +325,13 @@ def fig_alpha_min():
     for D,c in zip(Deltas,cols):
         am=[]
         for g in gs:
-            _,n0,C,_=gs_obs(g,D); eta=g                 # eta = g_D/omega_tilde (D=0 => omega_tilde=1)
-            am.append(1.0 - C/(2*eta))                   # alpha_min = 1 - C/(2 eta)
+            n0,C=gs_obs_genuine(g,D); eta=g              # eta = g_D/omega_tilde (D=0 => omega_tilde=1)
+            am.append(C/(2*eta))                          # alpha_min = C/(2 eta), genuine family
         ax.plot(gs,am,color=c,label=fr"$\Delta={D}\,\omega_c$")
-    ax.set_xlabel(r"coupling $g/\omega_c$"); ax.set_ylabel(r"$\bar{\alpha}_{\min}$")
-    ax.set_xlim(0,0.7); ax.legend(loc="upper left")
-    ax.set_title(r"Gauge of minimal photon content $\bar{\alpha}_{\min}=1-C/2\eta$")
+    ax.axhline(0,color=CB["black"],lw=0.6,ls=":"); ax.axhline(1,color=CB["black"],lw=0.6,ls=":")
+    ax.set_xlabel(r"coupling $g/\omega_c$"); ax.set_ylabel(r"$\alpha_{\min}$")
+    ax.set_xlim(0,0.7); ax.set_ylim(0,1); ax.legend(loc="upper left")
+    ax.set_title(r"Gauge of minimal photon content $\alpha_{\min}=C/2\eta$")
     save(fig,"12_alpha_min_vs_g")
 
 # ============== FIG 13: ED ground-state photon number ==============
