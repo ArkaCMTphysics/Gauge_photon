@@ -16,16 +16,20 @@ This repository contains the numerical code used to produce every figure in the 
 
 ```
 src/
+  make_fig1.py   generates the schematic overview figure (00_gauge_orbit_overview):
+                 the gauge orbit of the photon dressing, with phase-space insets
+                 showing the field being squeezed along the orbit
   makefigs.py    generates Figs. 1-14 (quantum Rabi model: spectra, exact
                  diagonalization, tunable coherent-state coefficients and
                  photon-number cross-checks)
   dicke_gi.py    builds the gauge-invariant Dicke Hamiltonian and runs
                  exact diagonalization (Garziano et al. resummed form)
-  dicke_figs.py  generates Figs. 15-17 (Dicke gauge parabolas, curvature,
-                 discriminant), using dicke_gi.py
+  dicke_figs.py  generates Figs. 15-19 (Dicke gauge parabolas, curvature,
+                 discriminant, gauge of minimal photon content, and invariant
+                 minimal photon number vs. coupling), using dicke_gi.py
 figs/
-  01_*.pdf ... 17_*.pdf   the resulting figures, numbered as in the paper
-                          (PNG copies included alongside each PDF)
+  00_*.pdf, 01_*.pdf ... 19_*.pdf   the resulting figures, numbered as in the
+                          paper (PNG copies included alongside each PDF)
 ```
 
 ## Reproducing the figures
@@ -34,8 +38,9 @@ figs/
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 cd src
+python3 make_fig1.py    # -> ../figs/00_gauge_orbit_overview.*
 python3 makefigs.py     # -> ../figs/01_*.pdf ... 14_*.pdf
-python3 dicke_figs.py   # -> ../figs/15_*.pdf ... 17_*.pdf
+python3 dicke_figs.py   # -> ../figs/15_*.pdf ... 19_*.pdf
 ```
 
 Each run prints a diagnostic line per figure (and, for the Dicke script, an explicit `Ncut` convergence check) so the numbers behind each plot are visible, not just the plot itself.
