@@ -19,13 +19,15 @@ fig = plt.figure(figsize=(7.2,4.4))
 gs = GridSpec(2, 5, height_ratios=[0.9,2.4], hspace=0.02, wspace=0.08,
               left=0.07, right=0.98, top=0.88, bottom=0.14)
 
-# ---- five phase-space insets (Coulomb .. lambda* .. Dipole) ----
-widths = [0.85, 0.62, 0.36, 0.62, 0.85]
-for i, w in enumerate(widths):
+# ---- five phase-space insets (Coulomb .. lambda* .. Dipole): U_lambda leaves x fixed and
+# displaces p by 2*lambda*G (matter-conditioned), so the ellipse translates vertically with
+# FIXED shape -- it is a displacement, not a squeeze. ----
+p_centers = [-0.85, -0.45, 0.0, 0.45, 0.85]
+for i, pc in enumerate(p_centers):
     axe = fig.add_subplot(gs[0, i])
     axe.set_xlim(-1.5,1.5); axe.set_ylim(-1.5,1.5); axe.set_aspect("equal"); axe.axis("off")
     alpha = 0.30 if i==2 else 0.16
-    axe.add_patch(Ellipse((0,0), width=2*w, height=1.1, facecolor=CB["blue"], alpha=alpha,
+    axe.add_patch(Ellipse((0,pc), width=1.0, height=0.62, facecolor=CB["blue"], alpha=alpha,
                            edgecolor=CB["blue"], linewidth=1.3))
     if i==0:
         axe.annotate("", xy=(1.35,0), xytext=(-1.35,0), clip_on=False,
@@ -59,7 +61,7 @@ ax.set_xlabel(r"gauge parameter $\lambda$", fontsize=12.5, labelpad=6)
 
 ax.text(0.01, 0.97, r"$\langle a^\dagger a\rangle_\lambda$", transform=ax.transAxes,
         fontsize=12.5, color="#111111", va="top", ha="left")
-ax.text(0.01, 0.80, r"$U_\lambda=\exp[\,i\lambda G(a+a^\dagger)\,]$:  $x\to x+2\lambda G$,  $p$ unchanged",
+ax.text(0.01, 0.80, r"$U_\lambda=\exp[\,i\lambda G(a+a^\dagger)\,]$:  $p\to p+2\lambda G$,  $x$ unchanged",
         transform=ax.transAxes, fontsize=10.5, color="#333333", va="top", ha="left")
 ax.text(0.40, 0.55, r"$\langle a^\dagger a\rangle_\lambda=\langle a^\dagger a\rangle_0+C\lambda+Q\lambda^2$",
         transform=ax.transAxes, fontsize=12, color="#111111")
