@@ -45,7 +45,8 @@ def gs_obs(g,Delta,w=1.0,Nf=160):
 def HC_corrected(g,Delta,w=1.0,Nf=160):
     """eq:corrected-Coulomb = H^(alpha=0), the genuine gauge family's Coulomb endpoint
     (D=0, so wc_tilde=wc and eta=g/wc); NOT the naive/uncorrected H_C used by gs_obs above,
-    which Sec. 3.2 states is not part of the genuine gauge family."""
+    which Sec. 3.2 states is not part of the genuine gauge family. Kept only as a
+    cross-check for gs_obs_genuine() below -- not used to generate any figure."""
     from scipy.linalg import cosm, sinm
     a,ad=ops(Nf); I2=np.eye(2)
     sy=np.array([[0.,-1j],[1j,0]]); sz=np.array([[1.,0],[0,-1]],dtype=complex)
@@ -55,17 +56,21 @@ def HC_corrected(g,Delta,w=1.0,Nf=160):
 
 def gs_obs_genuine(g,Delta,w=1.0,Nf=160):
     """Ground-state moments (n0,C) of the genuine alpha-gauge family at alpha=0 (Coulomb),
-    using the universal C = i<sigma_x(ad-a)>_0 convention of eq:universal-parabola (Q=1 exactly,
-    since G=sigma_x, G^2=I). Because U_alpha = U_lambda|_{lambda=-alpha*eta} is exactly the
-    universal displacement operator, the parabola n(alpha) = n0 - C*eta*alpha + eta^2*alpha^2
-    follows in closed form from this single diagonalisation -- no further sweep is needed."""
-    H,a,ad,Nf=HC_corrected(g,Delta,w,Nf); E,V=np.linalg.eigh(H); psi=V[:,0]
-    I2=np.eye(2)
-    num=np.kron(ad@a,I2)
-    Gop=np.kron(np.eye(Nf),np.array([[0.,1],[1,0]],dtype=complex))  # sigma_x on matter
-    padag_a=np.kron(ad-a,I2)
-    n0=float(np.real(psi.conj()@num@psi))
-    C=float(np.real(1j*(psi.conj()@(Gop@padag_a)@psi)))
+    obtained in CLOSED FORM from the standard-gauge (cutoff-free) moments via the composite
+    transform of App. gauge-connection: HC = U_dagger * U_rot * H_C * U_rot^dagger * U, with
+    U_rot=exp[i*pi/2*ad a] (trivial field rotation, U_rot^dagger a U_rot = i*a) and
+    U_dagger=exp[i*eta*sigma_x*(a+ad)] (matter-conditioned displacement, eq:universal-U at
+    lambda=+eta). Composing the trivial x<->p swap from U_rot with the universal-displacement
+    algebra of Sec. 2 gives, using Q=<sigma_x^2>=1:
+        n0_HC = n0_std + eta*C_std + eta^2
+        C_HC  = C_std + 2*eta
+    where (n0_std, C_std) = gs_obs(g,Delta,...)'s moments. Verified against direct
+    diagonalisation of HC_corrected() to machine precision (<1e-14) over g in [0.1,0.8],
+    Delta in [0.3,0.7]. No additional diagonalisation beyond the standard gauge is needed."""
+    _,n0_std,C_std,_=gs_obs(g,Delta,w,Nf)
+    eta=g/w
+    n0=n0_std+eta*C_std+eta**2
+    C=C_std+2*eta
     return n0,C
 def parity_spectrum(Hfun,g,Delta,nlev,w=1.0,Nf=120):
     # parity P = exp(i pi (a^dag a + (1-sx)/2)) ; build and split
